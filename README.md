@@ -39,7 +39,7 @@ Coordinate System
 
 ## APPROACH
 
-Finding out several YOLO model , generic YOLO model only makes bounding box in a particular way it does not account how object is placed and its orientation, YOLO OBB(Oriented Bounding Box) makes bounding box in the way a object is oriented, YOLO pose helps to find out certain points which might be point of interest in our case we need to find joint and tab points to find the orientation angle of joint to tab. The problem is that there exist no single model which predicts both.
+Finding out several YOLO model ,Standard object detection models output Axis-Aligned Bounding Boxes (AABB), which do not account for the object's rotational orientation. YOLO-OBB (Oriented Bounding Box) generates tight, rotated boundaries, while YOLO-Pose identifies specific points of interest (keypoints) which might be point of interest in our case we need to find joint and tab points to find the orientation angle of joint to tab. The problem is that there exist no single model which predicts both.
 
 
 My first approach was to use YOLO pose-model to find out 4 corner points + 2(joint and tab) points make arrow based on joint and tab , and joining the 4 corner bounding box points to make rectangle. While joining the 4 corner points it did not look like rectangle more of polygon/triangle  and was not giving good result with this approach as compared to ground truth.
@@ -55,7 +55,10 @@ My first approach was to use YOLO pose-model to find out 4 corner points + 2(joi
 
 Selection of confidence score was higly important it was taken to be 0.25 and the images above are based on that if model is confident more than 25% then it would detect it. We can see that there is one image it manages to detect the box but misses out the arrow , if the confidence score is set to be lower it could also detect the arrows.
 
-Also for calculation for True Positive , if centre of bounding box is within 20 pixel of ground truth it is considered to be as True Positive.
+
+The bounding box predicted by the OBB model and the keypoint vector predicted by the Pose model must have center points within 20 pixels of each other. If they disagree, the prediction is discarded.
+
+Once the ensemble prediction is formed, it is compared to the Ground Truth. It is only counted as a True Positive if the predicted bounding box achieves (IoU) > 0.45 against the actual label.
 
 Based on confidence score=0.25 IoU >0.45
 
@@ -67,7 +70,7 @@ F1-Score:        0.9833
 Mean Ang. Error: 8.34°
 
 ## Analysis and Next Step
-For robotics application it is quite important to have the orientation of the tube as well as information about tab and joint to open tab. Standard bounding box would not solve the purpose and pose estimation is highly essential for finding the orientation of tube and location point of tab and joint. Precision 1 means that it does not detect any background as tube that is false positive whereas recall 0.9672 it misses some tube (i.e 3.28%) as we can see in the image that it misses 2 tubes joint to tab dirn(but not bounding box). Mean ang error shows that it deviates around 8 degrees, we need to improve this parameter according to precision of our robot.
+For robotics application it is quite important to have the orientation of the tube as well as information about tab and joint to open tab. Standard bounding box would not solve the purpose and pose estimation is highly essential for finding the orientation of tube and location point of tab and joint. Precision 1 means that it does not detect any background as tube that is false positive whereas recall 0.9672 it misses some tube (i.e 3.28%) as we can see in the image that it misses 2 tubes joint to tab dirn(but not bounding box). Mean ang error shows that it deviates around 8 degrees, we need to improve this parameter according to precision and tolerance of our robot.
 
 This was done for very small dataset that was around 70 images. Deep learning model requires large amount of data for giving good result , if we are limited with data then we can augment images(i.e flip rotate crop etc) hence increasing size of dataset for training . Another very popular method which is going on is MetaLearning which could be looked upon.
 

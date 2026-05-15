@@ -1,0 +1,9 @@
+path: /kaggle/working
+train: train/images
+val: val/images
+
+# 6 Keypoints: 4 Corners, 1 Joint, 1 Tab.
+kpt_shape: [6, 3] 
+
+names:
+  0: microcentrifuge_tube
